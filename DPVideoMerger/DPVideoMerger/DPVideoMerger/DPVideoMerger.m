@@ -56,11 +56,12 @@
         NSError *videoError,*audioError;
         BOOL videoResult = [videoTrack insertTimeRange:timeRange ofTrack:videoAsset atTime:currentTime error:&videoError];
         BOOL audioResult = [audioTrack insertTimeRange:timeRange ofTrack:audioAsset atTime:currentTime error:&audioError];
-        
-        
-        if(!videoResult || !audioResult || videoError || audioError) {
+        if (!audioResult || audioError){
+            DLog(@"%@", audioError);
+        }
+        if(!videoResult || videoError) {
             if (completion){
-                completion(nil, videoError? : audioError);}
+                completion(nil, videoError);}
             isError = YES;
             *stop = YES;
         } else {
