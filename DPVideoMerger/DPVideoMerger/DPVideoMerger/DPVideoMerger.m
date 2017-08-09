@@ -85,7 +85,7 @@
             
             if (tx != 0 && ty!=0)
             {
-                if (tx < ty) {
+                if (tx <= ty) {
                     float factor = videoSize.width/videoAsset.naturalSize.width;
                     Scale = CGAffineTransformMakeScale(factor,factor);
                     tx = 0;
