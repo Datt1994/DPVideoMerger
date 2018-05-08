@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #ifdef DEBUG
 #define DLog(s, ...) NSLog(s, ##__VA_ARGS__)
 #else
@@ -16,4 +17,7 @@
 @interface DPVideoMerger : NSObject
 + (void)mergeVideosWithFileURLs:(NSArray *)videoFileURLs
              completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion;
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion;
 @end
