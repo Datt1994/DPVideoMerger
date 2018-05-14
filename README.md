@@ -2,11 +2,11 @@
 
 **For Swift** :- [DPVideoMerger-Swift](https://github.com/Datt1994/DPVideoMerger-Swift)
 
-**Step 1**:-  Copy & paste DPVideoMerger.h & DPVideoMerger.m files into your project 
+**Step 1**:-  Copy & paste `DPVideoMerger.h` & `DPVideoMerger.m` files into your project 
 
 **Step 2**:-  Usage 
 
-```markdown
+```objc
     #import "DPVideoMerger.h"
     #import <AVKit/AVKit.h>
     #import <AVFoundation/AVFoundation.h>
