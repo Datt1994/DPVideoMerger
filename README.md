@@ -1,11 +1,12 @@
-# DPVideoMerger
+## DPVideoMerger
 
-For Swift :- https://github.com/Datt1994/DPVideoMerger-Swift
+**For Swift** :- [DPVideoMerger-Swift](https://github.com/Datt1994/DPVideoMerger-Swift)
 
-Step 1:-  Copy & paste DPVideoMerger.h & DPVideoMerger.m files into your project 
+**Step 1**:-  Copy & paste DPVideoMerger.h & DPVideoMerger.m files into your project 
 
-Step 2:-  Usage 
+**Step 2**:-  Usage 
 
+```markdown
     #import "DPVideoMerger.h"
     #import <AVKit/AVKit.h>
     #import <AVFoundation/AVFoundation.h>
@@ -35,3 +36,4 @@ Step 2:-  Usage
             [objAVPlayerVC.player play];
         }];
     }];
+```
