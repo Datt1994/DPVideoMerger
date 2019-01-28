@@ -17,6 +17,7 @@
 		C613A44D1F13C120006690D9 /* 1.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C613A44A1F13C120006690D9 /* 1.mp4 */; };
 		C613A44E1F13C120006690D9 /* 2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C613A44B1F13C120006690D9 /* 2.mp4 */; };
 		C613A44F1F13C120006690D9 /* 3.MOV in Resources */ = {isa = PBXBuildFile; fileRef = C613A44C1F13C120006690D9 /* 3.MOV */; };
+		C629C9E121FADD290093EC39 /* VideoImgCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C629C9E021FADD290093EC39 /* VideoImgCell.m */; };
 		C67C749A1F14B1B60018C0EE /* 4.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C67C74991F14B15E0018C0EE /* 4.mp4 */; };
 /* End PBXBuildFile section */
 
@@ -36,6 +37,8 @@
 		C613A44A1F13C120006690D9 /* 1.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 1.mp4; sourceTree = "<group>"; };
 		C613A44B1F13C120006690D9 /* 2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 2.mp4; sourceTree = "<group>"; };
 		C613A44C1F13C120006690D9 /* 3.MOV */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 3.MOV; sourceTree = "<group>"; };
+		C629C9DF21FADD290093EC39 /* VideoImgCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoImgCell.h; sourceTree = "<group>"; };
+		C629C9E021FADD290093EC39 /* VideoImgCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VideoImgCell.m; sourceTree = "<group>"; };
 		C67C74991F14B15E0018C0EE /* 4.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 4.mp4; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -75,6 +78,8 @@
 				C613A4311F13660B006690D9 /* AppDelegate.m */,
 				C613A4331F13660B006690D9 /* ViewController.h */,
 				C613A4341F13660B006690D9 /* ViewController.m */,
+				C629C9DF21FADD290093EC39 /* VideoImgCell.h */,
+				C629C9E021FADD290093EC39 /* VideoImgCell.m */,
 				C613A4361F13660B006690D9 /* Main.storyboard */,
 				C613A4391F13660B006690D9 /* Assets.xcassets */,
 				C613A43B1F13660C006690D9 /* LaunchScreen.storyboard */,
@@ -143,6 +148,7 @@
 				TargetAttributes = {
 					C613A4291F13660A006690D9 = {
 						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = 9P9Z6XM572;
 						ProvisioningStyle = Manual;
 					};
 				};
@@ -190,6 +196,7 @@
 				C613A4351F13660B006690D9 /* ViewController.m in Sources */,
 				C613A4321F13660B006690D9 /* AppDelegate.m in Sources */,
 				C613A42F1F13660B006690D9 /* main.m in Sources */,
+				C629C9E121FADD290093EC39 /* VideoImgCell.m in Sources */,
 				C613A4471F136695006690D9 /* DPVideoMerger.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -324,13 +331,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 9P9Z6XM572;
 				INFOPLIST_FILE = DPVideoMerger/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.datt.DPVideoMerger;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DXD.DPVideoMerger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "DXD_dev_*";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -339,13 +346,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 9P9Z6XM572;
 				INFOPLIST_FILE = DPVideoMerger/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.datt.DPVideoMerger;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DXD.DPVideoMerger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "DXD_dev_*";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

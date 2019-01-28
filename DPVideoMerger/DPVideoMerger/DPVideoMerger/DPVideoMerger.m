@@ -8,7 +8,7 @@
 
 #import "DPVideoMerger.h"
 #import <AVFoundation/AVFoundation.h>
-
+#define degreeToRadian(x) (M_PI * x / 180.0)
 
 @implementation DPVideoMerger
 + (void)mergeVideosWithFileURLs:(NSArray *)videoFileURLs
@@ -31,11 +31,24 @@
         if (CGSizeEqualToSize(videoSize, CGSizeZero)) {
             videoSize = videoAsset.naturalSize;
         }
-        if (videoSize.height < videoAsset.naturalSize.height){
-            videoSize.height = videoAsset.naturalSize.height;
+        BOOL  isVideoAssetPortrait_  = NO;
+        CGAffineTransform videoTransform = videoAsset.preferredTransform;
+        
+        if(videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
+        if(videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
+
+        CGFloat videoAssetWidth = videoAsset.naturalSize.width;
+        CGFloat videoAssetHeight = videoAsset.naturalSize.height;
+        if(isVideoAssetPortrait_) {
+            videoAssetWidth = videoAsset.naturalSize.height;
+            videoAssetHeight = videoAsset.naturalSize.width;
         }
-        if (videoSize.width < videoAsset.naturalSize.width){
-            videoSize.width = videoAsset.naturalSize.width;
+        
+        if (videoSize.height < videoAssetHeight){
+            videoSize.height = videoAssetHeight;
+        }
+        if (videoSize.width < videoAssetWidth){
+            videoSize.width = videoAssetWidth;
         }
     }];
     [videoFileURLs enumerateObjectsUsingBlock:^(NSURL *videoFileURL, NSUInteger idx, BOOL *stop) {
@@ -69,46 +82,86 @@
             videoCompositionInstruction.timeRange = CMTimeRangeMake(currentTime, timeRange.duration);
             
             AVMutableVideoCompositionLayerInstruction * layerInstruction = [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
+
+            BOOL  isVideoAssetPortrait_  = NO;
+            CGAffineTransform videoTransform = videoAsset.preferredTransform;
+            UIImageOrientation videoAssetOrientation_  = UIImageOrientationUp;
+            if(videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0)  { videoAssetOrientation_= UIImageOrientationRight; isVideoAssetPortrait_ = YES; }
+            if(videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0)  { videoAssetOrientation_ =  UIImageOrientationLeft; isVideoAssetPortrait_ = YES; }
+            if(videoTransform.a == 1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == 1.0)  { videoAssetOrientation_ =  UIImageOrientationUp; }
+            if(videoTransform.a == -1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == -1.0) { videoAssetOrientation_ = UIImageOrientationDown; }
+            
+            CGFloat videoAssetWidth = videoAsset.naturalSize.width;
+            CGFloat videoAssetHeight = videoAsset.naturalSize.height;
+            if(isVideoAssetPortrait_) {
+                videoAssetWidth = videoAsset.naturalSize.height;
+                videoAssetHeight = videoAsset.naturalSize.width;
+            }
             
             //Magic 😜
             int tx = 0;
-            if (videoSize.width-videoAsset.naturalSize.width != 0)
+            if (videoSize.width-videoAssetWidth != 0)
             {
-                tx = (videoSize.width-videoAsset.naturalSize.width)/2;
+                tx = (videoSize.width-videoAssetWidth)/2;
             }
             int ty = 0;
-            if (videoSize.height-videoAsset.naturalSize.height != 0)
+            if (videoSize.height-videoAssetHeight != 0)
             {
-                ty = (videoSize.height-videoAsset.naturalSize.height)/2;
+                ty = (videoSize.height-videoAssetHeight)/2;
             }
             CGAffineTransform Scale = CGAffineTransformMakeScale(1,1);
-            
+            float factor = 1.0;
             if (tx != 0 && ty!=0)
             {
                 if (tx <= ty) {
-                    float factor = videoSize.width/videoAsset.naturalSize.width;
+                    factor = videoSize.width/videoAssetWidth;
                     Scale = CGAffineTransformMakeScale(factor,factor);
                     tx = 0;
-                    ty = (videoSize.height-videoAsset.naturalSize.height*factor)/2;
+                    ty = (videoSize.height-videoAssetHeight*factor)/2;
                 }
                 if (tx > ty) {
-                    float factor = videoSize.height/ videoAsset.naturalSize.height;
+                    factor = videoSize.height/ videoAssetHeight;
                     Scale = CGAffineTransformMakeScale(factor,factor);
                     ty = 0;
-                    tx = (videoSize.width-videoAsset.naturalSize.width*factor)/2;
+                    tx = (videoSize.width-videoAssetWidth*factor)/2;
                 }
             }
-            CGAffineTransform Move = CGAffineTransformMakeTranslation(tx,ty);
-            
-            [layerInstruction setTransform:CGAffineTransformConcat(Scale,Move) atTime:kCMTimeZero];
+            CGAffineTransform Move;
+            CGAffineTransform transform;
+            switch (videoAssetOrientation_) {
+                case UIImageOrientationRight:
+                    Move = CGAffineTransformMakeTranslation((videoAssetWidth*factor)+tx,ty);
+                    transform = CGAffineTransformMakeRotation(degreeToRadian(90));
+                    [layerInstruction setTransform:CGAffineTransformConcat(transform,CGAffineTransformConcat(Scale,Move)) atTime:kCMTimeZero];
+                    break;
+                case UIImageOrientationLeft:
+                    Move = CGAffineTransformMakeTranslation(tx,videoSize.height-ty);
+                    transform = CGAffineTransformMakeRotation(degreeToRadian(270));
+                    [layerInstruction setTransform:CGAffineTransformConcat(transform,CGAffineTransformConcat(Scale,Move)) atTime:kCMTimeZero];
+                    break;
+                case UIImageOrientationUp:
+                    Move = CGAffineTransformMakeTranslation(tx,ty);
+                    [layerInstruction setTransform: CGAffineTransformConcat(Scale,Move) atTime:kCMTimeZero];
+                    break;
+                case UIImageOrientationDown:
+                    Move = CGAffineTransformMakeTranslation(videoSize.width+tx,(videoAssetHeight*factor)+ty);
+                    transform = CGAffineTransformMakeRotation(degreeToRadian(180));
+                    [layerInstruction setTransform:CGAffineTransformConcat(transform,CGAffineTransformConcat(Scale,Move)) atTime:kCMTimeZero];
+                    break;
+                default:
+                    break;
+            }
+
             videoCompositionInstruction.layerInstructions = @[layerInstruction];
-            
+           
+
             [instructions addObject:videoCompositionInstruction];
             currentTime = CMTimeAdd(currentTime, timeRange.duration);
         }
     }];
     
     if (isError == NO) {
+        
         AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetHighestQuality];
         NSString *strFilePath = [DPVideoMerger generateMergedVideoFilePath];
         exportSession.outputURL = [NSURL fileURLWithPath:strFilePath];
@@ -166,7 +219,9 @@
     
     if (videoFileURLs.count != 4) {
         NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"Provide 4 Videos",NSLocalizedFailureReasonErrorKey : @"error"}];
+        dispatch_async(dispatch_get_main_queue(), ^{
         completion(nil,error);
+        });
         return;
     }
     
@@ -243,7 +298,7 @@
             default:
                 break;
         }
-        
+      
         [subInstruction setTransform:CGAffineTransformConcat(Scale,Move) atTime:kCMTimeZero];
         [arrAVMutableVideoCompositionLayerInstruction addObject:subInstruction];
     }];

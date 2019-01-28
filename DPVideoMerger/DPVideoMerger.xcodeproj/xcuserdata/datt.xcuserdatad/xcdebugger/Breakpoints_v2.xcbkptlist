@@ -6,15 +6,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DPVideoMerger/DPVideoMerger/DPVideoMerger.m"
-            timestampString = "547453955.707606"
+            timestampString = "570355282.200629"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "64"
-            endingLineNumber = "64"
+            startingLineNumber = "143"
+            endingLineNumber = "143"
             landmarkName = "+mergeVideosWithFileURLs:completion:"
             landmarkType = "7">
          </BreakpointContent>
