@@ -122,7 +122,7 @@
             NSLog(@"url = %@", [url relativePath]);
             [fileURLs addObject:url];
             if (fileURLs.count == self->arrIndex.count) {
-                [DPVideoMerger gridMergeVideosWithFileURLs:fileURLs andVideoResolution:CGSizeMake(2000, 2000) completion:^(NSURL *mergedVideoURL, NSError *error) {
+                [DPVideoMerger gridMergeVideosWithFileURLs:fileURLs andVideoResolution:CGSizeMake(2000, 2000) andRepeatVideo:true completion:^(NSURL *mergedVideoURL, NSError *error) {
                     
                     [self.activityIndicator stopAnimating];
                     self.view.userInteractionEnabled=true;

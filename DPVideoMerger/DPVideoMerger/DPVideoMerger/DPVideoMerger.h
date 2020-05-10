@@ -17,7 +17,21 @@
 @interface DPVideoMerger : NSObject
 + (void)mergeVideosWithFileURLs:(NSArray *)videoFileURLs
              completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion;
+
 + (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
                  andVideoResolution:(CGSize)resolution
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion;
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                     andRepeatVideo:(BOOL)isRepeatVideo
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion;
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                   andVideoDuration:(NSInteger)videoDuration
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion;
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                     andRepeatVideo:(BOOL)isRepeatVideo
+                   andVideoDuration:(NSInteger)videoDuration
                          completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion;
 @end

@@ -216,6 +216,28 @@
 + (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
                  andVideoResolution:(CGSize)resolution
                          completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:false andVideoDuration:-1 completion:completion];
+      
+}
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                     andRepeatVideo:(BOOL)isRepeatVideo
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:isRepeatVideo andVideoDuration:-1 completion:completion];
+    
+}
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                   andVideoDuration:(NSInteger)videoDuration
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:false andVideoDuration:videoDuration completion:completion];
+    
+}
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                     andRepeatVideo:(BOOL)isRepeatVideo
+                   andVideoDuration:(NSInteger)videoDuration
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
     
     if (videoFileURLs.count != 4) {
         NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"Provide 4 Videos",NSLocalizedFailureReasonErrorKey : @"error"}];
@@ -237,6 +259,18 @@
         }
         
     }];
+    if  (videoDuration != -1) {
+        CMTime videoDurationTime = CMTimeMake(videoDuration, 1);
+        if (CMTimeCompare(videoDurationTime, maxTime) == -1) {
+            NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"videoDuration shoulde grater than equal to logest video duration from all videoes.",NSLocalizedFailureReasonErrorKey : @"error"}];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(nil,error);
+            });
+            return;
+        } else  {
+            maxTime = CMTimeMake(videoDuration, 1);
+        }
+    }
     
     AVMutableVideoCompositionInstruction * instruction = [AVMutableVideoCompositionInstruction videoCompositionInstruction];
     instruction.timeRange = CMTimeRangeMake(kCMTimeZero, maxTime);
@@ -248,7 +282,7 @@
         
         AVMutableCompositionTrack *videoTrack = [composition addMutableTrackWithMediaType:AVMediaTypeVideo preferredTrackID:kCMPersistentTrackID_Invalid];
         
-        [videoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, asset.duration) ofTrack:[[asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0] atTime:kCMTimeZero error:nil];
+        [videoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, maxTime) ofTrack:[[asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0] atTime:kCMTimeZero error:nil];
         
         
         
@@ -298,12 +332,36 @@
             default:
                 break;
         }
-      
-        [subInstruction setTransform:CGAffineTransformConcat(Scale,Move) atTime:kCMTimeZero];
-        [arrAVMutableVideoCompositionLayerInstruction addObject:subInstruction];
+        
+        if (isRepeatVideo) {
+            [subInstruction setTransform:CGAffineTransformConcat(Scale,Move) atTime:kCMTimeZero];
+            [arrAVMutableVideoCompositionLayerInstruction addObject:subInstruction];
+            CMTime dur = asset.duration;
+            do {
+                dur = CMTimeAdd(dur, asset.duration);
+                CMTime atTime = CMTimeSubtract(dur, asset.duration);
+                AVMutableCompositionTrack *videoTrack = [composition addMutableTrackWithMediaType:AVMediaTypeVideo preferredTrackID:kCMPersistentTrackID_Invalid];
+                if (CMTimeCompare(maxTime, atTime) != 0) {
+                    if (CMTimeCompare(maxTime, dur) == -1) {
+                        CMTime sub = CMTimeSubtract(dur, maxTime);
+                        [videoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, CMTimeSubtract(asset.duration,sub)) ofTrack:[[asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0] atTime:atTime error:nil];
+                    } else {
+                        [videoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, asset.duration) ofTrack:[[asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0] atTime:atTime error:nil];
+                    }
+                    AVMutableVideoCompositionLayerInstruction *subInstruction = [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
+                    
+                    [subInstruction setTransform:CGAffineTransformConcat(Scale,Move) atTime:atTime];
+                    [arrAVMutableVideoCompositionLayerInstruction addObject:subInstruction];
+                    
+                }
+            } while (CMTimeCompare(maxTime, dur) != -1);
+        } else {
+            [subInstruction setTransform:CGAffineTransformConcat(Scale,Move) atTime:kCMTimeZero];
+            [arrAVMutableVideoCompositionLayerInstruction addObject:subInstruction];
+        }
     }];
     
-    instruction.layerInstructions = arrAVMutableVideoCompositionLayerInstruction;
+    instruction.layerInstructions = [[arrAVMutableVideoCompositionLayerInstruction reverseObjectEnumerator] allObjects];
     
     AVMutableVideoComposition *MainCompositionInst = [AVMutableVideoComposition videoComposition];
     MainCompositionInst.instructions = [NSArray arrayWithObject:instruction];
@@ -331,7 +389,7 @@
                 break;
             }
             case AVAssetExportSessionStatusFailed:{
-                DLog(@"Failed");
+                DLog(@"Failed %@",exporter.error);
                 exportCompletion();
                 break;
             }
