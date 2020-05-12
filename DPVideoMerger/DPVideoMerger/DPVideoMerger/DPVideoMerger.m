@@ -12,6 +12,24 @@
 
 @implementation DPVideoMerger
 + (void)mergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                     completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger mergeVideosWithFileURLs:videoFileURLs andVideoSize:CGSizeMake(-1, -1) completion:completion];
+    
+}
++ (void)mergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                   andVideoSize:(CGSize)finalVideoSize
+                     completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger mergeVideosWithFileURLs:videoFileURLs andVideoSize:finalVideoSize andVideoQuality:AVAssetExportPresetMediumQuality completion:completion];
+}
++ (void)mergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                andVideoQuality:(NSString *)videoQuality
+                     completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger mergeVideosWithFileURLs:videoFileURLs andVideoSize:CGSizeMake(-1, -1) andVideoQuality:videoQuality completion:completion];
+    
+}
++ (void)mergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                   andVideoSize:(CGSize)finalVideoSize
+                andVideoQuality:(NSString *)videoQuality
                      completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion
 {
     
@@ -24,33 +42,45 @@
     __block CMTime currentTime = kCMTimeZero;
     __block CGSize videoSize = CGSizeZero;
     __block int32_t highestFrameRate = 0;
-    [videoFileURLs enumerateObjectsUsingBlock:^(NSURL *videoFileURL, NSUInteger idx, BOOL *stop) {
-        NSDictionary *options = @{AVURLAssetPreferPreciseDurationAndTimingKey:@YES};
-        AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoFileURL options:options];
-        AVAssetTrack *videoAsset = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
-        if (CGSizeEqualToSize(videoSize, CGSizeZero)) {
-            videoSize = videoAsset.naturalSize;
-        }
-        BOOL  isVideoAssetPortrait_  = NO;
-        CGAffineTransform videoTransform = videoAsset.preferredTransform;
-        
-        if(videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
-        if(videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
+    if (CGSizeEqualToSize(finalVideoSize, CGSizeMake(-1, -1))) {
+        [videoFileURLs enumerateObjectsUsingBlock:^(NSURL *videoFileURL, NSUInteger idx, BOOL *stop) {
+               NSDictionary *options = @{AVURLAssetPreferPreciseDurationAndTimingKey:@YES};
+               AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoFileURL options:options];
+               AVAssetTrack *videoAsset = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
+               if (CGSizeEqualToSize(videoSize, CGSizeZero)) {
+                   videoSize = videoAsset.naturalSize;
+               }
+               BOOL  isVideoAssetPortrait_  = NO;
+               CGAffineTransform videoTransform = videoAsset.preferredTransform;
+               
+               if(videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
+               if(videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
 
-        CGFloat videoAssetWidth = videoAsset.naturalSize.width;
-        CGFloat videoAssetHeight = videoAsset.naturalSize.height;
-        if(isVideoAssetPortrait_) {
-            videoAssetWidth = videoAsset.naturalSize.height;
-            videoAssetHeight = videoAsset.naturalSize.width;
+               CGFloat videoAssetWidth = videoAsset.naturalSize.width;
+               CGFloat videoAssetHeight = videoAsset.naturalSize.height;
+               if(isVideoAssetPortrait_) {
+                   videoAssetWidth = videoAsset.naturalSize.height;
+                   videoAssetHeight = videoAsset.naturalSize.width;
+               }
+               
+               if (videoSize.height < videoAssetHeight){
+                   videoSize.height = videoAssetHeight;
+               }
+               if (videoSize.width < videoAssetWidth){
+                   videoSize.width = videoAssetWidth;
+               }
+           }];
+    } else {
+        if (finalVideoSize.height < 100 || finalVideoSize.width < 100) {
+            NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"videoSize height/width should grater than equal to 100",NSLocalizedFailureReasonErrorKey : @"error"}];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(nil,error);
+            });
+            return;
         }
-        
-        if (videoSize.height < videoAssetHeight){
-            videoSize.height = videoAssetHeight;
-        }
-        if (videoSize.width < videoAssetWidth){
-            videoSize.width = videoAssetWidth;
-        }
-    }];
+        videoSize = finalVideoSize;
+    }
+   
     [videoFileURLs enumerateObjectsUsingBlock:^(NSURL *videoFileURL, NSUInteger idx, BOOL *stop) {
         NSDictionary *options = @{AVURLAssetPreferPreciseDurationAndTimingKey:@YES};
         AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoFileURL options:options];
@@ -162,7 +192,7 @@
     
     if (isError == NO) {
         
-        AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetHighestQuality];
+        AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:composition presetName:videoQuality];
         NSString *strFilePath = [DPVideoMerger generateMergedVideoFilePath];
         exportSession.outputURL = [NSURL fileURLWithPath:strFilePath];
         exportSession.outputFileType = AVFileTypeMPEG4;
@@ -213,6 +243,11 @@
         }];
     }
 }
+
+
+
+
+
 + (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
                  andVideoResolution:(CGSize)resolution
                          completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
@@ -235,8 +270,29 @@
 }
 + (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
                  andVideoResolution:(CGSize)resolution
+                    andVideoQuality:(NSString *)videoQuality
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:false andVideoDuration:-1 andVideoQuality:videoQuality completion:completion];
+}
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                     andRepeatVideo:(BOOL)isRepeatVideo
+                    andVideoQuality:(NSString *)videoQuality
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:isRepeatVideo andVideoDuration:-1 andVideoQuality:videoQuality completion:completion];
+}
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
                      andRepeatVideo:(BOOL)isRepeatVideo
                    andVideoDuration:(NSInteger)videoDuration
+                         completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
+    [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:isRepeatVideo andVideoDuration:videoDuration andVideoQuality:AVAssetExportPresetMediumQuality completion:completion];
+}
++ (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
+                 andVideoResolution:(CGSize)resolution
+                     andRepeatVideo:(BOOL)isRepeatVideo
+                   andVideoDuration:(NSInteger)videoDuration
+                    andVideoQuality:(NSString *)videoQuality
                          completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
     
     if (videoFileURLs.count != 4) {
@@ -262,7 +318,7 @@
     if  (videoDuration != -1) {
         CMTime videoDurationTime = CMTimeMake(videoDuration, 1);
         if (CMTimeCompare(videoDurationTime, maxTime) == -1) {
-            NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"videoDuration shoulde grater than equal to logest video duration from all videoes.",NSLocalizedFailureReasonErrorKey : @"error"}];
+            NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"videoDuration should grater than equal to logest video duration from all videoes.",NSLocalizedFailureReasonErrorKey : @"error"}];
             dispatch_async(dispatch_get_main_queue(), ^{
                 completion(nil,error);
             });
@@ -370,7 +426,7 @@
     
     NSURL *url = [NSURL fileURLWithPath:[DPVideoMerger generateMergedVideoFilePath]];
     
-    AVAssetExportSession *exporter = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetHighestQuality];
+    AVAssetExportSession *exporter = [[AVAssetExportSession alloc] initWithAsset:composition presetName:videoQuality];
     exporter.outputURL=url;
     [exporter setVideoComposition:MainCompositionInst];
     exporter.outputFileType = AVFileTypeQuickTimeMovie;
