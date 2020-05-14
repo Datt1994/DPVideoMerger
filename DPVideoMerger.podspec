@@ -80,7 +80,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/Datt1994/DPVideoMerger.git", :tag => s.version , :commit => "a489f35fb7dc6d553e47f93261a9d3a31f148c63" }
+  s.source       = { :git => "https://github.com/Datt1994/DPVideoMerger.git", :tag => s.version } # , :commit => "a489f35fb7dc6d553e47f93261a9d3a31f148c63"
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
