@@ -104,7 +104,8 @@
         }
         if(!videoResult || videoError) {
             if (completion){
-                completion(nil, videoError);}
+                dispatch_async(dispatch_get_main_queue(), ^{ completion(nil, videoError); });
+            }
             isError = YES;
             *stop = YES;
         } else {
@@ -429,7 +430,7 @@
     AVAssetExportSession *exporter = [[AVAssetExportSession alloc] initWithAsset:composition presetName:videoQuality];
     exporter.outputURL=url;
     [exporter setVideoComposition:MainCompositionInst];
-    exporter.outputFileType = AVFileTypeQuickTimeMovie;
+    exporter.outputFileType = AVFileTypeMPEG4;
     
     void(^exportCompletion)(void) = ^{
         dispatch_async(dispatch_get_main_queue(), ^{

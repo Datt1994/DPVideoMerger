@@ -54,8 +54,8 @@
         [self->imageManager requestAVAssetForVideo:[self->arrImgAssets objectAtIndex:indexPath.row] options:nil resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
             NSURL *url = (NSURL *)[[(AVURLAsset *)asset URL] fileReferenceURL];
             NSLog(@"%@",url);
-            NSLog(@"url = %@", [url absoluteString]);
-            NSLog(@"url = %@", [url relativePath]);
+//            NSLog(@"url = %@", [url absoluteString]);
+//            NSLog(@"url = %@", [url relativePath]);
             [fileURLs addObject:url];
             if (fileURLs.count == self->arrIndex.count) {
                 [DPVideoMerger mergeVideosWithFileURLs:fileURLs completion:^(NSURL *mergedVideoURL, NSError *error) {
@@ -118,8 +118,8 @@
         [self->imageManager requestAVAssetForVideo:[self->arrImgAssets objectAtIndex:indexPath.row] options:nil resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
             NSURL *url = (NSURL *)[[(AVURLAsset *)asset URL] fileReferenceURL];
             NSLog(@"%@",url);
-            NSLog(@"url = %@", [url absoluteString]);
-            NSLog(@"url = %@", [url relativePath]);
+//            NSLog(@"url = %@", [url absoluteString]);
+//            NSLog(@"url = %@", [url relativePath]);
             [fileURLs addObject:url];
             if (fileURLs.count == self->arrIndex.count) {
                 [DPVideoMerger gridMergeVideosWithFileURLs:fileURLs andVideoResolution:CGSizeMake(2000, 2000) andRepeatVideo:true completion:^(NSURL *mergedVideoURL, NSError *error) {
@@ -152,7 +152,7 @@
 }
 - (nonnull __kindof UICollectionViewCell *)collectionView:(nonnull UICollectionView *)collectionView cellForItemAtIndexPath:(nonnull NSIndexPath *)indexPath {
     VideoImgCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"VideoImgCell" forIndexPath:indexPath];
-    [imageManager requestImageForAsset:[arrImgAssets objectAtIndex:indexPath.row] targetSize:CGSizeMake(300, 300) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    [imageManager requestImageForAsset:[arrImgAssets objectAtIndex:indexPath.row] targetSize:CGSizeMake(collectionView.frame.size.width/2 - 10, collectionView.frame.size.width/2 - 10) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         cell.img.image = result;
     }];
    
@@ -169,6 +169,10 @@
         cell.img.alpha = 0.5;
     }
     
+}
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
+    return CGSizeMake(collectionView.frame.size.width/2 - 10, collectionView.frame.size.width/2 - 10);
 }
 
 @end
