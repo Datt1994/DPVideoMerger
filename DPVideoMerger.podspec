@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "DPVideoMerger"
-  s.version      = "1.0.0"
+  s.version      = "1.0.1"
   s.summary      = "Multiple videos merge in one video with manage scale and aspect ratio for Objective C."
 
   # This description is used to generate tags and improve search results.

@@ -66,4 +66,20 @@ $ pod install
             [objAVPlayerVC.player play];
         }];
     }];
+    
+    [DPVideoMerger gridMergeVideosWithFileURLs:fileURLs andVideoResolution:CGSizeMake(2000, 2000) andRepeatVideo:true completion:^(NSURL *mergedVideoURL, NSError *error) {
+        if (error) {
+            NSString *errorMessage = [NSString stringWithFormat:@"Could not merge videos: %@", [error localizedDescription]];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:errorMessage preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {}]];
+            [self presentViewController:alert animated:YES completion:nil];
+            return;
+        }
+        
+        AVPlayerViewController *objAVPlayerVC = [[AVPlayerViewController alloc] init];
+        objAVPlayerVC.player = [AVPlayer playerWithURL:mergedVideoURL];
+        [self presentViewController:objAVPlayerVC animated:YES completion:^{
+            [objAVPlayerVC.player play];
+        }];
+    }];
 ```
