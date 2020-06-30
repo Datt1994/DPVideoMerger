@@ -34,6 +34,10 @@
     [results enumerateObjectsUsingBlock:^(PHAsset *obj, NSUInteger idx, BOOL * _Nonnull stop) {
         [self->arrImgAssets addObject:obj];
     }];
+    
+    DLog(@"MIME types the AVURLAsset class understands:-");
+    DLog(@"%@", [AVURLAsset audiovisualMIMETypes]);
+
     // Do any additional setup after loading the view, typically from a nib.
 }
 

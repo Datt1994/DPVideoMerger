@@ -44,32 +44,43 @@
     __block int32_t highestFrameRate = 0;
     if (CGSizeEqualToSize(finalVideoSize, CGSizeMake(-1, -1))) {
         [videoFileURLs enumerateObjectsUsingBlock:^(NSURL *videoFileURL, NSUInteger idx, BOOL *stop) {
-               NSDictionary *options = @{AVURLAssetPreferPreciseDurationAndTimingKey:@YES};
-               AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoFileURL options:options];
-               AVAssetTrack *videoAsset = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
-               if (CGSizeEqualToSize(videoSize, CGSizeZero)) {
-                   videoSize = videoAsset.naturalSize;
-               }
-               BOOL  isVideoAssetPortrait_  = NO;
-               CGAffineTransform videoTransform = videoAsset.preferredTransform;
-               
-               if(videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
-               if(videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
-
-               CGFloat videoAssetWidth = videoAsset.naturalSize.width;
-               CGFloat videoAssetHeight = videoAsset.naturalSize.height;
-               if(isVideoAssetPortrait_) {
-                   videoAssetWidth = videoAsset.naturalSize.height;
-                   videoAssetHeight = videoAsset.naturalSize.width;
-               }
-               
-               if (videoSize.height < videoAssetHeight){
-                   videoSize.height = videoAssetHeight;
-               }
-               if (videoSize.width < videoAssetWidth){
-                   videoSize.width = videoAssetWidth;
-               }
-           }];
+            NSDictionary *options = @{AVURLAssetPreferPreciseDurationAndTimingKey:@YES};
+            AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoFileURL options:options];
+            CGFloat length = (asset.duration.value)/(asset.duration.timescale);
+            if (length == 0.0) {
+                NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"File not suppoted '%@'",videoFileURL] ,NSLocalizedFailureReasonErrorKey : @"error"}];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completion(nil,error);
+                });
+                DLog(@"MIME types the AVURLAsset class understands:-");
+                DLog(@"%@", [AVURLAsset audiovisualMIMETypes]);
+                *stop = YES;
+                return;
+            }
+            AVAssetTrack *videoAsset = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
+            if (CGSizeEqualToSize(videoSize, CGSizeZero)) {
+                videoSize = videoAsset.naturalSize;
+            }
+            BOOL  isVideoAssetPortrait_  = NO;
+            CGAffineTransform videoTransform = videoAsset.preferredTransform;
+            
+            if(videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
+            if(videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0)  { isVideoAssetPortrait_ = YES;}
+            
+            CGFloat videoAssetWidth = videoAsset.naturalSize.width;
+            CGFloat videoAssetHeight = videoAsset.naturalSize.height;
+            if(isVideoAssetPortrait_) {
+                videoAssetWidth = videoAsset.naturalSize.height;
+                videoAssetHeight = videoAsset.naturalSize.width;
+            }
+            
+            if (videoSize.height < videoAssetHeight){
+                videoSize.height = videoAssetHeight;
+            }
+            if (videoSize.width < videoAssetWidth){
+                videoSize.width = videoAssetWidth;
+            }
+        }];
     } else {
         if (finalVideoSize.height < 100 || finalVideoSize.width < 100) {
             NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"videoSize height/width should grater than equal to 100",NSLocalizedFailureReasonErrorKey : @"error"}];
@@ -80,7 +91,7 @@
         }
         videoSize = finalVideoSize;
     }
-   
+    
     [videoFileURLs enumerateObjectsUsingBlock:^(NSURL *videoFileURL, NSUInteger idx, BOOL *stop) {
         NSDictionary *options = @{AVURLAssetPreferPreciseDurationAndTimingKey:@YES};
         AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoFileURL options:options];
@@ -113,7 +124,7 @@
             videoCompositionInstruction.timeRange = CMTimeRangeMake(currentTime, timeRange.duration);
             
             AVMutableVideoCompositionLayerInstruction * layerInstruction = [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
-
+            
             BOOL  isVideoAssetPortrait_  = NO;
             CGAffineTransform videoTransform = videoAsset.preferredTransform;
             UIImageOrientation videoAssetOrientation_  = UIImageOrientationUp;
@@ -182,9 +193,8 @@
                 default:
                     break;
             }
-
+            
             videoCompositionInstruction.layerInstructions = @[layerInstruction];
-           
 
             [instructions addObject:videoCompositionInstruction];
             currentTime = CMTimeAdd(currentTime, timeRange.duration);
@@ -253,21 +263,18 @@
                  andVideoResolution:(CGSize)resolution
                          completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
     [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:false andVideoDuration:-1 completion:completion];
-      
 }
 + (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
                  andVideoResolution:(CGSize)resolution
                      andRepeatVideo:(BOOL)isRepeatVideo
                          completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
     [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:isRepeatVideo andVideoDuration:-1 completion:completion];
-    
 }
 + (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
                  andVideoResolution:(CGSize)resolution
                    andVideoDuration:(NSInteger)videoDuration
                          completion:(void(^)(NSURL *mergedVideoURL, NSError *error))completion {
     [DPVideoMerger gridMergeVideosWithFileURLs:videoFileURLs andVideoResolution:resolution andRepeatVideo:false andVideoDuration:videoDuration completion:completion];
-    
 }
 + (void)gridMergeVideosWithFileURLs:(NSArray *)videoFileURLs
                  andVideoResolution:(CGSize)resolution
@@ -299,7 +306,7 @@
     if (videoFileURLs.count != 4) {
         NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : @"Provide 4 Videos",NSLocalizedFailureReasonErrorKey : @"error"}];
         dispatch_async(dispatch_get_main_queue(), ^{
-        completion(nil,error);
+            completion(nil,error);
         });
         return;
     }
@@ -311,6 +318,17 @@
     [videoFileURLs enumerateObjectsUsingBlock:^(NSURL *videoFileURL, NSUInteger idx, BOOL *stop) {
         NSDictionary *options = @{AVURLAssetPreferPreciseDurationAndTimingKey:@YES};
         AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoFileURL options:options];
+        CGFloat length = (asset.duration.value)/(asset.duration.timescale);
+        if (length == 0.0) {
+            NSError *error = [[NSError alloc] initWithDomain:@"DPVideoMerger" code:404 userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"File not suppoted '%@'",videoFileURL] ,NSLocalizedFailureReasonErrorKey : @"error"}];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(nil,error);
+            });
+            DLog(@"MIME types the AVURLAsset class understands:-");
+            DLog(@"%@", [AVURLAsset audiovisualMIMETypes]);
+            *stop = YES;
+            return;
+        }
         if (CMTimeCompare(maxTime, asset.duration) == -1) {
             maxTime = asset.duration;
         }
