@@ -1,6 +1,6 @@
 ## DPVideoMerger
 
-**For Swift** :- [DPVideoMerger-Swift](https://github.com/Datt1994/DPVideoMerger-Swift)
+**For Swift and new features** :- [DPVideoMerger-Swift](https://github.com/Datt1994/DPVideoMerger-Swift)
 
 
 ## Installation with CocoaPods
